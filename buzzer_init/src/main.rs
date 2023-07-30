@@ -32,7 +32,7 @@ fn main() -> ! {
 
     // ド の周波数を設定する
     let freq_c = 261_u32;
-    buzzer.set_period(freq_c.hz());
+    buzzer.set_period(freq_c.Hz());
     buzzer.set_duty(Channel::_4, buzzer.get_max_duty() / 2);
 
     // ブザーを1秒間鳴らす

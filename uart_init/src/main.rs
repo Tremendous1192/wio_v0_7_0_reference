@@ -26,7 +26,7 @@ fn main() -> ! {
     // UARTドライバオブジェクト
     let mut serial: wio::HalUart = sets.uart.init(
         &mut clocks,
-        9600.hz(),
+        9600.Hz(),
         peripherals.SERCOM2,
         &mut peripherals.MCLK,
     );

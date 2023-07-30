@@ -58,7 +58,7 @@ fn main() -> ! {
             &mut clocks,
             peripherals.SERCOM7,
             &mut peripherals.MCLK,
-            58.mhz(),
+            58.MHz(),
             &mut delay,
         )
         .unwrap();
@@ -93,7 +93,7 @@ fn main() -> ! {
         // SDカードと通信できている場合
         Ok(_) => {
             // SDカードと接続できない場合エラーを返す
-            cont.set_baud(20.mhz());
+            cont.set_baud(20.MHz());
 
             // SDカードとの通信に成功したことと容量を画面に表示する
             let mut data = String::<128_usize>::new();

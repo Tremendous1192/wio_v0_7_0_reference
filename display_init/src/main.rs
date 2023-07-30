@@ -34,7 +34,7 @@ fn main() -> ! {
             &mut clocks,
             peripherals.SERCOM7,
             &mut peripherals.MCLK,
-            58.mhz(), // サンプルの MHz()はエラーになった
+            58.MHz(),
             &mut delay,
         )
         .unwrap();

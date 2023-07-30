@@ -1,3 +1,6 @@
+//! 正面右側の Grove ピンに差し込んだブザーを鳴らすプログラム
+//! 必要なものは下記URLを参照してください
+//! https://github.com/Tremendous1192/rust-wio-terminal-exercise/tree/main/ex_grove_02
 //! 組込みRustのおまじない
 #![no_std] // 必須アトリビュート
 #![no_main] // 必須アトリビュート
