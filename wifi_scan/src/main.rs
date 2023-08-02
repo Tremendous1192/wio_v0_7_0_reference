@@ -1,7 +1,17 @@
-//! wifi 接続可能な端末を表示する(?)プログラム. エラーで止まる
+//! wifi 接続可能な端末を表示するプログラム.
 //! https://github.com/atsamd-rs/atsamd/blob/0820f0df58eb8705ddfa6533ed76953d18e6b992/boards/wio_terminal/examples/wifi_scan.rs
-//! Wio Terminal の Wi-Fi ファームウェアアップデートが必要らしい
+//!
+//! Note 1: Wio Terminal の Wi-Fi ファームウェアアップデートが必要である
 //! https://wiki.seeedstudio.com/Wio-Terminal-Network-Overview/
+//!
+//! Note 2: 下記のコマンドで上手く起動するようになる.理由は不明
+//! cargo hf2 --vid 0x2886 --pid 0x002d --release
+//!
+//! 参考になった Issue と Post
+//! wio-terminal Wi-Fi examples broken by #542 #628
+//! https://github.com/atsamd-rs/atsamd/issues/628
+//! https://github.com/atsamd-rs/atsamd/issues/628#issuecomment-1337554363
+//!
 //! 組込みRustのおまじない
 #![no_std] // 必須アトリビュート
 #![no_main] // 必須アトリビュート
@@ -27,6 +37,8 @@ use wio::hal::delay::Delay;
 use wio::wifi_prelude::*;
 use wio::wifi_rpcs as rpc;
 use wio::wifi_singleton;
+// Wi-Fiシングルトンと割り込み処理を生成するマクロ
+// WIFI: Option<Wifi> = Some(Wifi::init(略));
 wifi_singleton!(WIFI);
 
 // 非同期処理
@@ -84,11 +96,8 @@ fn main() -> ! {
         }
     });
 
-    user_led.set_high().unwrap(); // 動作確認
-
-    // バージョン番号を表示する(エラーで止まる)
+    // バージョン番号を表示する
     let version = unsafe {
-        // ここでエラーが起きる
         WIFI.as_mut()
             .map(|wifi| wifi.blocking_rpc(rpc::GetVersion {}).unwrap())
             .unwrap()
@@ -101,9 +110,8 @@ fn main() -> ! {
     );
     textbuffer.truncate(0);
 
-    // mac 番号を表示する(エラーで止まる)
+    // mac 番号を表示する
     let mac = unsafe {
-        // ここでエラーが出る
         WIFI.as_mut()
             .map(|wifi| wifi.blocking_rpc(rpc::GetMacAddress {}).unwrap())
             .unwrap()
@@ -115,13 +123,13 @@ fn main() -> ! {
     // 組込みはloop必須
     loop {
         user_led.set_low().ok();
-        // Start scanning
+        // スキャンを開始する
         unsafe {
             WIFI.as_mut()
                 .map(|wifi| wifi.blocking_rpc(rpc::ScanStart {}).unwrap())
                 .unwrap()
         };
-        // Block until the scan is complete
+        // スキャン完了まで待機する
         loop {
             let scanning = unsafe {
                 WIFI.as_mut()
@@ -133,11 +141,13 @@ fn main() -> ! {
             }
         }
 
+        // アクセスポイント番号を取得する
         let num = unsafe {
             WIFI.as_mut()
                 .map(|wifi| wifi.blocking_rpc(rpc::ScanGetNumAPs {}).unwrap())
                 .unwrap()
         };
+        // 接続可能範囲にあるアクセスポイントを取得する(?)
         let aps = unsafe {
             WIFI.as_mut()
                 .map(|wifi| {
@@ -147,15 +157,16 @@ fn main() -> ! {
         };
         user_led.set_high().ok();
 
-        // Write the information to the screen.
         writeln!(textbuffer, "{:?} APs", num).unwrap();
         write_with_clear(&mut display, textbuffer.as_str(), 3, Point::new(170, 3));
         textbuffer.truncate(0);
 
+        // 各アクセスポイントの情報を画面に表示する
         for (i, ap) in aps.unwrap().0.iter().enumerate() {
             if i >= num as usize {
                 break;
             }
+            // SSID
             writeln!(textbuffer, "{:?}", ap.ssid).unwrap();
             write_with_clear(
                 &mut display,
@@ -165,6 +176,7 @@ fn main() -> ! {
             );
             textbuffer.truncate(0);
 
+            // BSSID
             writeln!(textbuffer, "{:?}", ap.bssid).unwrap();
             write_with_clear(
                 &mut display,
@@ -174,6 +186,7 @@ fn main() -> ! {
             );
             textbuffer.truncate(0);
 
+            // RSSI
             writeln!(textbuffer, "{:?}", ap.rssi).unwrap();
             write_with_clear(
                 &mut display,
@@ -183,6 +196,7 @@ fn main() -> ! {
             );
             textbuffer.truncate(0);
 
+            // 表示内容を更新する
             if ap.band as u8 == 1 {
                 write_with_clear(&mut display, "5G", 3, Point::new(132, 30 + i as i32 * 12));
                 textbuffer.truncate(0);
@@ -193,6 +207,7 @@ fn main() -> ! {
 }
 // ここまでmain関数
 
+// 画面を初期化する
 fn clear(display: &mut wio::LCD) {
     let style = PrimitiveStyleBuilder::new()
         .fill_color(Rgb565::BLACK)
@@ -202,6 +217,7 @@ fn clear(display: &mut wio::LCD) {
     backdrop.draw(display).ok().unwrap();
 }
 
+// 文字を記入する(初回)
 fn write<'a, T: Into<&'a str>>(display: &mut wio::LCD, text: T, pos: Point) {
     Text::with_baseline(
         text.into(),
@@ -214,6 +230,7 @@ fn write<'a, T: Into<&'a str>>(display: &mut wio::LCD, text: T, pos: Point) {
     .unwrap();
 }
 
+// 前回の表示を削除して新しい情報を表示する
 fn write_with_clear<'a, T: Into<&'a str>>(
     display: &mut wio::LCD,
     text: T,
