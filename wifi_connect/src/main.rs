@@ -1,7 +1,17 @@
-//! Wifiルーターに接続するプログラム. エラーで止まる
+//! Wifiルーターに接続するプログラム.
 //! https://github.com/atsamd-rs/atsamd/blob/0820f0df58eb8705ddfa6533ed76953d18e6b992/boards/wio_terminal/examples/wifi_connect.rs
-//! Wio Terminal の Wi-Fi ファームウェアアップデートが必要らしい
+//!
+//! Note 1: Wio Terminal の Wi-Fi ファームウェアアップデートが必要である
 //! https://wiki.seeedstudio.com/Wio-Terminal-Network-Overview/
+//!
+//! Note 2: 下記のコマンドで上手く起動するようになる.理由は不明
+//! cargo hf2 --vid 0x2886 --pid 0x002d --release
+//!
+//! 参考になった Issue と Post
+//! wio-terminal Wi-Fi examples broken by #542 #628
+//! https://github.com/atsamd-rs/atsamd/issues/628
+//! https://github.com/atsamd-rs/atsamd/issues/628#issuecomment-1337554363
+//!
 //! 組込みRustのおまじない
 #![no_std] // 必須アトリビュート
 #![no_main] // 必須アトリビュート
@@ -28,6 +38,8 @@ use wio::wifi_prelude::*;
 use wio::wifi_rpcs as rpc;
 use wio::wifi_singleton;
 use wio::wifi_types::Security;
+// Wi-Fiシングルトンと割り込み処理を生成するマクロ
+// WIFI: Option<Wifi> = Some(Wifi::init(略));
 wifi_singleton!(WIFI);
 
 #[wio::entry]
@@ -81,8 +93,8 @@ fn main() -> ! {
         }
     });
 
+    // バージョン番号を表示する
     let version = unsafe {
-        // ここでエラーが起きる
         WIFI.as_mut()
             .map(|wifi| wifi.blocking_rpc(rpc::GetVersion {}).unwrap())
             .unwrap()
@@ -95,6 +107,7 @@ fn main() -> ! {
     );
     textbuffer.truncate(0);
 
+    // mac 番号を表示する
     let mac = unsafe {
         WIFI.as_mut()
             .map(|wifi| wifi.blocking_rpc(rpc::GetMacAddress {}).unwrap())
@@ -105,6 +118,9 @@ fn main() -> ! {
     textbuffer.truncate(0);
 
     // Wi-Fi ルーターに接続する
+    // Notice!
+    // You do NOT have to share your network name and that password.
+    // If you want to use this code, you must save this in private repository.
     let ip_info = unsafe {
         WIFI.as_mut()
             .map(|wifi| {
@@ -118,8 +134,10 @@ fn main() -> ! {
             })
             .unwrap()
     };
+
     // 接続成功の証でLEDを点灯する
     user_led.set_high().ok();
+
     // Wi-Fi接続の情報を画面に表示する
     writeln!(textbuffer, "ip = {}", ip_info.ip).unwrap();
     write(&mut display, textbuffer.as_str(), Point::new(3, 30));
