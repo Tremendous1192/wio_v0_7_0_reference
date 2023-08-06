@@ -13,4 +13,3 @@ heapless = "0.7.16" # スタック上でヒープデータを取り扱う
 embedded-sdmmc = "0.3.0" # SDカード.
 # SdMmcError が 0.5.0 で削除された.
 # SDCardController が 0.4.0 で削除された
-embedded-hal = "0.2.3"
