@@ -10,3 +10,9 @@ wio_terminal = "0.7.0" # 必須クレート
 panic-halt = "0.2" # 必須クレート
 embedded-graphics = "0.7.1" # 描画 0.8.0 だと displayを渡せない
 itoa = "1.0.9" # 整数型をstr型に変換する
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3

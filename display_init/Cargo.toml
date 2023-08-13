@@ -9,3 +9,9 @@ edition = "2021"
 wio_terminal = "0.7.0" # 必須クレート
 panic-halt = "0.2" # 必須クレート
 embedded-graphics = "0.7.1" # 0.8.0 だと displayを渡せない
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3

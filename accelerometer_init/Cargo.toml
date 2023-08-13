@@ -11,3 +11,9 @@ panic-halt = "0.2" # 必須クレート
 embedded-graphics = "0.7.1" # 描画 0.8.0 だと displayを渡せない
 micromath = "2.0.0" # ベクトル等
 ryu = "1.0.15" # float型をstr型に変換する
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3

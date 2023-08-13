@@ -8,3 +8,9 @@ edition = "2021"
 [dependencies]
 wio_terminal = "0.7.0" # 必須クレート
 panic-halt = "0.2" # 必須クレート
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3

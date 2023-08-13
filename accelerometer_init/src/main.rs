@@ -48,48 +48,55 @@ fn main() -> ! {
     let backdrop =
         Rectangle::with_corners(Point::new(0, 0), Point::new(320, 240)).into_styled(style);
     backdrop.draw(&mut display).unwrap();
+    // 文字を描画する部分だけ黒く塗りつぶす
+    let mini_back_drop =
+        Rectangle::with_corners(Point::new(0, 0), Point::new(150, 60)).into_styled(style);
 
     // 加速度計
     // lis3dh::Lis3dh
     let mut lis3dh =
         sets.accelerometer
             .init(&mut clocks, peripherals.SERCOM4, &mut peripherals.MCLK);
-
-    // 加速度
-    // micromath::vector::F32x3
-    let vec = lis3dh.accel_norm().unwrap();
-    let mut buffer = ryu::Buffer::new();
-
-    // 加速度を画面に表示する
-    let style = eg::mono_font::MonoTextStyle::new(
-        &eg::mono_font::ascii::FONT_10X20,
-        eg::pixelcolor::Rgb565::WHITE,
-    );
-    eg::text::Text::new(
-        buffer.format(vec.x),
-        eg::prelude::Point::new(15_i32, 15_i32),
-        style,
-    )
-    .draw(&mut display)
-    .unwrap();
-    eg::text::Text::new(
-        buffer.format(vec.y),
-        eg::prelude::Point::new(15_i32, 35_i32),
-        style,
-    )
-    .draw(&mut display)
-    .unwrap();
-    eg::text::Text::new(
-        buffer.format(vec.z),
-        eg::prelude::Point::new(15_i32, 50_i32),
-        style,
-    )
-    .draw(&mut display)
-    .unwrap();
     // ここまで 初期化
 
     // 組込みはloop必須
-    loop {}
+    loop {
+        // 加速度
+        // micromath::vector::F32x3
+        let vec = lis3dh.accel_norm().unwrap();
+        let mut buffer = ryu::Buffer::new();
+
+        // 加速度を画面に表示する
+        let style = eg::mono_font::MonoTextStyle::new(
+            &eg::mono_font::ascii::FONT_10X20,
+            eg::pixelcolor::Rgb565::WHITE,
+        );
+        eg::text::Text::new(
+            buffer.format(vec.x),
+            eg::prelude::Point::new(15_i32, 15_i32),
+            style,
+        )
+        .draw(&mut display)
+        .unwrap();
+        eg::text::Text::new(
+            buffer.format(vec.y),
+            eg::prelude::Point::new(15_i32, 35_i32),
+            style,
+        )
+        .draw(&mut display)
+        .unwrap();
+        eg::text::Text::new(
+            buffer.format(vec.z),
+            eg::prelude::Point::new(15_i32, 50_i32),
+            style,
+        )
+        .draw(&mut display)
+        .unwrap();
+
+        // 30fps
+        delay.delay_ms(33_u16);
+        mini_back_drop.draw(&mut display).unwrap();
+    }
     // ここまでloop処理
 }
 // ここまでmain関数
