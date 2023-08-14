@@ -12,3 +12,9 @@ heapless = "0.7.16" # スタック上でヒープデータを取り扱う
 cortex-m = "0.7.3" # 内臓マイク等の非同期機器(?)
 cortex-m-rt = { version = "0.7", optional = true } # 内臓マイク等の非同期機器(?)
 embedded-graphics = "0.7.1" # 描画 0.8.0 だと displayを渡せない
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
